@@ -38,6 +38,7 @@ message Datum {
   repeated float float_data = 6;
   // If true data contains an encoded image that need to be decoded
   optional bool encoded = 7 [default = false];
+  repeated float labels = 8;
 }
 
 message FillerParameter {
@@ -307,6 +308,7 @@ message ParamSpec {
 // Update the next available ID when you add a new LayerParameter field.
 //
 // LayerParameter next available layer-specific ID: 145 (last added: crop_param)
+// MBCV: 146 (Heatmapdataparameter)
 message LayerParameter {
   optional string name = 1; // the layer name
   optional string type = 2; // the layer type
@@ -401,6 +403,7 @@ message LayerParameter {
   optional ThresholdParameter threshold_param = 128;
   optional TileParameter tile_param = 138;
   optional WindowDataParameter window_data_param = 129;
+  optional HeatmapDataParameter heatmap_data_param = 146;
 }
 
 // Message that stores parameters used to apply transformation
@@ -655,6 +658,12 @@ message DataParameter {
   // data access bandwidth varies).
   optional uint32 prefetch = 10 [default = 4];
 }
+
+message HeatmapDataParameter {
+  optional uint32 heatmap_width = 1;
+  optional uint32 heatmap_height = 2;
+}
+
 
 message DropoutParameter {
   optional float dropout_ratio = 1 [default = 0.5]; // dropout ratio

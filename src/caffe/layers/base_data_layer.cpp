@@ -50,14 +50,17 @@ void BasePrefetchingDataLayer<Dtype>::LayerSetUp(
   // calls so that the prefetch thread does not accidentally make simultaneous
   // cudaMalloc calls when the main thread is running. In some GPUs this
   // seems to cause failures if we do not so.
+ std::cout << 1 << std::endl;
   for (int i = 0; i < PREFETCH_COUNT; ++i) {
     prefetch_[i].data_.mutable_cpu_data();
     if (this->output_labels_) {
       prefetch_[i].label_.mutable_cpu_data();
     }
   }
+ std::cout << 2 << std::endl;
 #ifndef CPU_ONLY
   if (Caffe::mode() == Caffe::GPU) {
+ std::cout << 3 << std::endl;
     for (int i = 0; i < PREFETCH_COUNT; ++i) {
       prefetch_[i].data_.mutable_gpu_data();
       if (this->output_labels_) {
