@@ -94,6 +94,25 @@ cv::Mat ReadImageToCVMat(const string& filename,
 }
 
 cv::Mat ReadImageToCVMat(const string& filename,
+                         const int height, const int width, const bool is_color, const cv::Rect& roi) {
+  cv::Mat cv_img;
+  int cv_read_flag = (is_color ? CV_LOAD_IMAGE_COLOR :
+    CV_LOAD_IMAGE_GRAYSCALE);
+  cv::Mat cv_img_origin = cv::imread(filename, cv_read_flag);
+  if (!cv_img_origin.data) {
+    LOG(ERROR) << "Could not open or find file " << filename;
+    return cv_img_origin;
+  }
+  cv_img_origin = cv::Mat(cv_img_origin, roi);
+  if (height > 0 && width > 0) {
+    cv::resize(cv_img_origin, cv_img, cv::Size(width, height));
+  } else {
+    cv_img = cv_img_origin;
+  }
+  return cv_img;
+}
+
+cv::Mat ReadImageToCVMat(const string& filename,
     const bool is_color) {
   return ReadImageToCVMat(filename, 0, 0, is_color);
 }
@@ -135,6 +154,35 @@ bool ReadImageToDatum(const string& filename, const int label,
     }
     CVMatToDatum(cv_img, datum);
     datum->set_label(label);
+    return true;
+  } else {
+    return false;
+  }
+}
+bool ReadImageToDatum(const string& filename, const vector<float>& labels,
+    const int height, const int width, const bool is_color,
+    const std::string & encoding, Datum* datum, const cv::Rect& roi) {
+  cv::Mat cv_img = ReadImageToCVMat(filename, height, width, is_color, roi);
+  if (cv_img.data) {
+    if (encoding.size()) {
+      if ( (cv_img.channels() == 3) == is_color && !height && !width &&
+          matchExt(filename, encoding) )
+        return ReadFileToDatum(filename, labels, datum);
+      std::vector<uchar> buf;
+      cv::imencode("."+encoding, cv_img, buf);
+      datum->set_data(std::string(reinterpret_cast<char*>(&buf[0]),
+                      buf.size()));
+      for(size_t i = 0; i < labels.size(); ++i){
+          datum->add_labels(labels[i]);
+      }
+      datum->set_encoded(true);
+      return true;
+    }
+    CVMatToDatum(cv_img, datum);
+    datum->clear_labels();
+    for(size_t i = 0; i < labels.size(); ++i){
+        datum->add_labels(labels[i]);
+    }
     return true;
   } else {
     return false;

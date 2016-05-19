@@ -93,7 +93,7 @@ void mask2label(const string& line,
                 string& img_file,
                 vector<float>& labels_of_image,
                 int input_width,
-                int input_height){
+                int input_height, const Rect& roi){
   vector<Rect> rects;
   parse_line(line, img_file, rects);
   bool found = false;
@@ -112,10 +112,10 @@ void mask2label(const string& line,
   }
   if (found){
       labels_of_image.push_back(1);
-      labels_of_image.push_back(center.x /(float)input_width);
-      labels_of_image.push_back(center.y /(float)input_height);
-      labels_of_image.push_back(center.width /(float)input_width);
-      labels_of_image.push_back(center.height /(float)input_height);
+      labels_of_image.push_back((center.x+center.width/2 - roi.x)/(float)roi.width);
+      labels_of_image.push_back((center.y+center.height/2 - roi.y)/(float)roi.height);
+      labels_of_image.push_back(center.width /(float)roi.width);
+      labels_of_image.push_back(center.height /(float)roi.height);
   }else{
       labels_of_image.push_back(0);
       labels_of_image.push_back(0);
@@ -157,13 +157,13 @@ int main(int argc, char** argv) {
   std::ifstream infile(argv[2]);
   std::vector<std::pair<std::string, std::vector<float> > > lines;
 
-
+  cv::Rect roi(FLAGS_input_width/4, FLAGS_input_height/3, FLAGS_input_width/2, FLAGS_input_height*2/3);
   std::string line;
   while (std::getline(infile,line)) {
       std::string filename;
       std::vector<float> vec_label;
       mask2label(line, filename, vec_label,
-                 FLAGS_input_width, FLAGS_input_height);
+                 FLAGS_input_width, FLAGS_input_height, roi);
       lines.push_back(std::make_pair(filename, vec_label));
   }
 
@@ -191,7 +191,7 @@ int main(int argc, char** argv) {
   int count = 0;
   int data_size = 0;
   bool data_size_initialized = false;
-
+  
   for (int line_id = 0; line_id < lines.size(); ++line_id) {
     bool status;
     //std::cout << line_id << std::endl;
@@ -207,7 +207,7 @@ int main(int argc, char** argv) {
     }
     status = ReadImageToDatum(root_folder + lines[line_id].first,
         lines[line_id].second, resize_height, resize_width, is_color,
-        enc, &datum);
+        enc, &datum, roi);
     if (status == false) continue;
     if (check_size) {
       if (!data_size_initialized) {
