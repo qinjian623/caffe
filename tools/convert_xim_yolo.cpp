@@ -97,6 +97,7 @@ void mask2label(const string& line,
   vector<Rect> rects;
   parse_line(line, img_file, rects);
   bool found = false;
+  long min_distance = input_width*input_width+input_height*input_height;
   Rect center;
   for(int i = 0; i < rects.size(); ++i){
       Rect& rect = rects[i];
@@ -105,17 +106,20 @@ void mask2label(const string& line,
           pc.x < input_width/2 + 1.5*rect.width &&
           pc.y > input_height*(0.4) &&
           pc.y < input_height){
-          center  = rect;
-          found = true;
-          break;
+          long distance = (pc.x-input_width/2)*(pc.x-input_width/2)+(pc.y - input_height/2)*(pc.y - input_height/2);
+          if (distance < min_distance){
+              center  = rect;
+              found = true;
+              min_distance = distance;
+          }
       }
   }
   if (found){
       labels_of_image.push_back(1);
-      labels_of_image.push_back((center.x+center.width/2 - roi.x)/(float)roi.width);
-      labels_of_image.push_back((center.y+center.height/2 - roi.y)/(float)roi.height);
-      labels_of_image.push_back(center.width /(float)roi.width);
-      labels_of_image.push_back(center.height /(float)roi.height);
+      labels_of_image.push_back((center.x+center.width/4 - roi.x)/(float)roi.width);
+      labels_of_image.push_back((center.y+center.height/4 - roi.y)/(float)roi.height);
+      labels_of_image.push_back((center.x+center.width/2 - roi.x) /(float)roi.width);
+      labels_of_image.push_back((center.x+center.height/2- roi.y) /(float)roi.height);
   }else{
       labels_of_image.push_back(0);
       labels_of_image.push_back(0);
