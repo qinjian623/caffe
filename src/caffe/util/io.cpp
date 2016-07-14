@@ -103,7 +103,10 @@ cv::Mat ReadImageToCVMat(const string& filename,
     LOG(ERROR) << "Could not open or find file " << filename;
     return cv_img_origin;
   }
+  //cv::imshow("ori", cv_img_origin);
   cv_img_origin = cv::Mat(cv_img_origin, roi);
+  //cv::imshow("roi", cv_img_origin);
+  //cv::waitKey(0);
   if (height > 0 && width > 0) {
     cv::resize(cv_img_origin, cv_img, cv::Size(width, height));
   } else {
@@ -160,7 +163,7 @@ bool ReadImageToDatum(const string& filename, const int label,
   }
 }
 bool ReadImageToDatum(const string& filename, const vector<float>& labels,
-    const int height, const int width, const bool is_color,
+    const int height,const int width, const bool is_color,
     const std::string & encoding, Datum* datum, const cv::Rect& roi) {
   cv::Mat cv_img = ReadImageToCVMat(filename, height, width, is_color, roi);
   if (cv_img.data) {
@@ -183,6 +186,10 @@ bool ReadImageToDatum(const string& filename, const vector<float>& labels,
     for(size_t i = 0; i < labels.size(); ++i){
         datum->add_labels(labels[i]);
     }
+      //cv::rectangle(cv_img, cv::Rect(labels[1]*cv_img.cols, labels[2]*cv_img.rows,
+      //            labels[3]*cv_img.cols, labels[4]*cv_img.rows), cv::Scalar(0));
+      //cv::imwrite("/tmp/"+ filename, cv_img);
+      //std::cout << filename << std::endl;
     return true;
   } else {
     return false;

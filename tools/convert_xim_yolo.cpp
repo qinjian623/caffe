@@ -123,7 +123,7 @@ void mask2label(const string& line,
       labels_of_image.push_back(0);
       labels_of_image.push_back(0);
   }
-  
+
 }
 
 int main(int argc, char** argv) {
@@ -153,7 +153,7 @@ int main(int argc, char** argv) {
   const bool check_size = FLAGS_check_size;
   const bool encoded = FLAGS_encoded;
   const string encode_type = FLAGS_encode_type;
-  
+
   std::ifstream infile(argv[2]);
   std::vector<std::pair<std::string, std::vector<float> > > lines;
 
@@ -191,7 +191,7 @@ int main(int argc, char** argv) {
   int count = 0;
   int data_size = 0;
   bool data_size_initialized = false;
-  
+
   for (int line_id = 0; line_id < lines.size(); ++line_id) {
     bool status;
     //std::cout << line_id << std::endl;
