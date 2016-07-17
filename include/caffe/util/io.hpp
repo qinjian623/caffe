@@ -100,12 +100,16 @@ inline bool ReadFileToDatum(const string& filename, Datum* datum) {
 bool ReadImageToDatum(const string& filename, const int label,
     const int height, const int width, const bool is_color,
     const std::string & encoding, Datum* datum);
+bool ReadImageToDatum(const string& filename, const int label,
+    const int height, const int width, const bool is_color,
+    const std::string & encoding, Datum* datum, const cv::Rect& roi);
 bool ReadImageToDatum(const string& filename, const vector<float>& labels,
     const int height, const int width, const bool is_color,
     const std::string & encoding, Datum* datum);
 bool ReadImageToDatum(const string& filename, const vector<float>& labels,
     const int height, const int width, const bool is_color,
     const std::string & encoding, Datum* datum, const cv::Rect& roi);
+    
 inline bool ReadImageToDatum(const string& filename, const int label,
     const int height, const int width, const bool is_color, Datum* datum) {
   return ReadImageToDatum(filename, label, height, width, is_color,
