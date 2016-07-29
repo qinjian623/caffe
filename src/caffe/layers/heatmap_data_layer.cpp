@@ -51,6 +51,14 @@ void HeatmapDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
     label_shape.push_back(heatmap_height);
     label_shape.push_back(heatmap_width);
     top[1]->Reshape(label_shape);
+
+    /*label_shape.clear();
+    label_shape.push_back(batch_size);
+    label_shape.push_back(1);
+    label_shape.push_back(1);
+    label_shape.push_back(1);
+    top[2]->Reshape(label_shape);*/
+
     for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
       this->prefetch_[i].label_.Reshape(label_shape);
     }
