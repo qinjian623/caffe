@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
 
     for (int line_id = 0; line_id < lines.size()-1; ++line_id) {
         bool status;
-        //std::cout << line_id << std::endl;
+        std::cout << line_id << std::endl;
         std::string enc = encode_type;
         RectInfo& ri = lines[line_id];
         cout << line_id << endl;
@@ -182,7 +182,7 @@ int main(int argc, char** argv) {
         CHECK(datum.SerializeToString(&out));
         txn->Put(key_str, out);
 
-        if (++count % 1000 == 0) {
+        if (++count % 10 == 0) {
             // Commit db
             txn->Commit();
             txn.reset(db->NewTransaction());
