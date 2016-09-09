@@ -23,10 +23,10 @@ BlobDataLayer<Dtype>::BlobDataLayer(const LayerParameter& param)
         int data_size = this->uni_data_param.data_shape_size();
         int labels_size = this->uni_data_param.labels_shape_size();
         for (size_t i = 0; i < PREFETCH_COUNT; i++) {
-            prefetch_.push_back(BlobBatch<Dtype>(data_size, labels_size));
+            prefetch_.push_back(new BlobBatch<Dtype>(data_size, labels_size));
         }
         for (size_t i = 0; i < PREFETCH_COUNT; ++i) {
-            prefetch_free_.push(&prefetch_[i]);
+            prefetch_free_.push(prefetch_[i]);
         }
 }
 
@@ -44,15 +44,15 @@ void BlobDataLayer<Dtype>::LayerSetUp(
   // cudaMalloc calls when the main thread is running. In some GPUs this
   // seems to cause failures if we do not so.
   for (int i = 0; i < PREFETCH_COUNT; ++i) {
-    for (size_t j = 0; j < prefetch_[i].data_.size(); j++) {
-        prefetch_[i].WarmUpCPU();
+    for (size_t j = 0; j < prefetch_[i]->data_.size(); j++) {
+        prefetch_[i]->WarmUpCPU();
     }
   }
 #ifndef CPU_ONLY
   if (Caffe::mode() == Caffe::GPU) {
     for (int i = 0; i < PREFETCH_COUNT; ++i) {
-        for (size_t j = 0; j < prefetch_[i].data_.size(); j++) {
-            prefetch_[i].WarmUpGPU();
+      for (size_t j = 0; j < prefetch_[i]->data_.size(); j++) {
+            prefetch_[i]->WarmUpGPU();
         }
     }
   }
@@ -80,14 +80,15 @@ void BlobDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
         top_shape[0] = batch_size;
         top[top_index]->Reshape(top_shape);
         for (int prefetch_id = 0; prefetch_id < this->PREFETCH_COUNT; ++prefetch_id) {
-            this->prefetch_[prefetch_id].data_[i]->Reshape(top_shape);
+	  CHECK_GT(prefetch_[prefetch_id]->data_.size(), 0);
+            this->prefetch_[prefetch_id]->data_[i]->Reshape(top_shape);
         }
-        LOG(INFO) << "output data size: " << top[top_index]->num() << ","
+	DLOG(INFO) << "output data size: " << top[top_index]->num() << ","
             << top[top_index]->channels() << "," << top[top_index]->height() << ","
-            << top[top_index]->width();
+		  << top[top_index]->width();
   }
   // labels
-  if (this->output_labels_) {
+  //  if (this->output_labels_) {
     for (int i = 0; i < uni_data_param.labels_shape_size(); ++i, ++top_index){
         vector<int> label_shape;
         label_shape.push_back(batch_size);
@@ -96,12 +97,12 @@ void BlobDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
         label_shape.push_back(uni_data_param.labels_shape(i).width());
         top[top_index]->Reshape(label_shape);
         for (int prefetch_id = 0; prefetch_id < this->PREFETCH_COUNT; ++prefetch_id) {
-            this->prefetch_[prefetch_id].labels_[i]->Reshape(label_shape);
-        }
+	  this->prefetch_[prefetch_id]->labels_[i]->Reshape(label_shape);
+	}
     }
-  }
+    //}
 }
-
+  
 
 // This function is called on prefetch thread
 template<typename Dtype>
@@ -184,7 +185,7 @@ void BlobDataLayer<Dtype>::InternalThreadEntry() {
 #ifndef CPU_ONLY
       if (Caffe::mode() == Caffe::GPU) {
           for(int i = 0; i < batch->data_.size(); ++i){
-              batch->data_[i]->get()->async_gpu_push(stream);
+              batch->data_[i]->data()->async_gpu_push(stream);
               CUDA_CHECK(cudaStreamSynchronize(stream));
           }
           //batch->data_.data().get()->async_gpu_push(stream);
@@ -218,7 +219,7 @@ void BlobDataLayer<Dtype>::Forward_cpu(
   if (this->output_labels_) {
     for (size_t i = 0; i < batch->labels_.size(); i++, top_index++) {
         // Reshape to loaded labels.
-        top[top_index]->ReshapeLike(*(batch->labels_[top_index]));
+        top[top_index]->ReshapeLike(*(batch->labels_[i]));
         // Copy the labels.
         caffe_copy(batch->labels_[i]->count(), batch->labels_[i]->cpu_data(),
             top[top_index]->mutable_cpu_data());

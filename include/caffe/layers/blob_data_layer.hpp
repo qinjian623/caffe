@@ -26,13 +26,14 @@ class BlobBatch {
         vector<Blob<Dtype>* > data_;
         vector<Blob<Dtype>* > labels_;
         BlobBatch(size_t data_size, size_t labels_size){
-            for (size_t i = 0; i < data_.size(); i++) {
-                data_.push_back(new Blob<Dtype>());
+            for (size_t i = 0; i < data_size; i++) {
+	        data_.push_back(new Blob<Dtype>());
             }
-            for (size_t i = 0; i < labels_.size(); i++) {
+            for (size_t i = 0; i < labels_size; i++) {
                 labels_.push_back(new Blob<Dtype>());
             }
         }
+
         ~BlobBatch(){
             for (size_t i = 0; i < data_.size(); i++) {
                 delete data_[i];
@@ -41,6 +42,7 @@ class BlobBatch {
                 delete labels_[i];
             }
         }
+  
         void WarmUpCPU(){
             for (size_t i = 0; i < data_.size(); i++) {
                 data_[i]->mutable_cpu_data();
@@ -97,7 +99,7 @@ class BlobDataLayer : public BaseDataLayer<Dtype>, public InternalThread {
   virtual void InternalThreadEntry();
   virtual void load_batch(BlobBatch<Dtype>* batch);
 
-  vector< BlobBatch<Dtype> > prefetch_;
+  vector< BlobBatch<Dtype>* > prefetch_;
 
   BlockingQueue<BlobBatch<Dtype>*> prefetch_free_;
   BlockingQueue<BlobBatch<Dtype>*> prefetch_full_;

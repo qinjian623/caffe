@@ -19,7 +19,7 @@ void BlobDataLayer<Dtype>::Forward_gpu(
   if (this->output_labels_) {
     for (size_t i = 0; i < batch->labels_.size(); i++, top_index++) {
         // Reshape to loaded labels.
-        top[top_index]->ReshapeLike(*(batch->labels_[top_index]));
+        top[top_index]->ReshapeLike(*(batch->labels_[i]));
         // Copy the labels.
         caffe_copy(batch->labels_[i]->count(), batch->labels_[i]->cpu_data(),
             top[top_index]->mutable_cpu_data());
