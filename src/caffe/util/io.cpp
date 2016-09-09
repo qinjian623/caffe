@@ -168,7 +168,6 @@ bool ReadImageToDatum(const string& filename, const int label,
     const std::string & encoding, Datum* datum, const cv::Rect& roi){
     //std::cout << roi << std::endl;
   cv::Mat cv_img = ReadImageToCVMat(filename, height, width, is_color, roi);
-  
   if (cv_img.data) {
     if (encoding.size()) {
       if ( (cv_img.channels() == 3) == is_color && !height && !width &&
@@ -189,6 +188,7 @@ bool ReadImageToDatum(const string& filename, const int label,
     return false;
   }
 }
+
 
 bool ReadImageToDatum(const string& filename, const vector<float>& labels,
     const int height,const int width, const bool is_color,
