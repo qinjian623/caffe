@@ -76,14 +76,18 @@ int main(int argc, char** argv) {
   CHECK_GT(labels_length, 0);
   while (infile >> filename) {
     std::vector<float> labels;
-    int label;
-    std::cout << filename << std::endl;
+    float label;
+    std::cout << filename;
     for (int i = 0; i < labels_length; ++i){
       infile >> label;
+    //std::cout << " " << label;
       labels.push_back(label);
     }
+    //infile >> label;
+    std::cout <<" Labels size: " << labels.size() << std::endl;
     lines.push_back(std::make_pair(filename, labels));
   }
+  std::cout << filename << std::endl;
   if (FLAGS_shuffle) {
     // randomly shuffle data
     LOG(INFO) << "Shuffling data";

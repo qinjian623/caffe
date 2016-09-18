@@ -155,7 +155,7 @@ void BlobDataLayer<Dtype>::load_batch(BlobBatch<Dtype>* batch) {
             const UniDataShape& shape = uni_data_param.labels_shape(i);
             long long offset = shape.channels()*shape.width()*shape.height();
             for(int j = 0; j < offset; ++j){
-                top_label[item_id*offset + j] = data.labels(accumulate_offset+j);
+		top_label[item_id*offset + j] = data.labels(accumulate_offset+j);
             }
             accumulate_offset += offset;
         }
