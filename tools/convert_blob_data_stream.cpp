@@ -30,8 +30,6 @@ using boost::scoped_ptr;
 
 DEFINE_bool(gray, false,
     "When this option is on, treat images as grayscale ones");
-DEFINE_bool(shuffle, false,
-    "Randomly shuffle the order of images and their labels");
 DEFINE_string(backend, "lmdb",
         "The backend {lmdb, leveldb} for storing the result");
 DEFINE_int32(resize_width, 0, "Width images are resized to");
@@ -71,29 +69,9 @@ int main(int argc, char** argv) {
   const string encode_type = FLAGS_encode_type;
 
   std::ifstream infile(argv[2]);
-  std::vector<std::pair<std::string, std::vector<float> > > lines;
   std::string filename;
   CHECK_GT(labels_length, 0);
-  while (infile >> filename) {
-    std::vector<float> labels;
-    float label;
-    std::cout << filename;
-    for (int i = 0; i < labels_length; ++i){
-      infile >> label;
-    //std::cout << " " << label;
-      labels.push_back(label);
-    }
-    //infile >> label;
-    std::cout <<" Labels size: " << labels.size() << std::endl;
-    lines.push_back(std::make_pair(filename, labels));
-  }
   std::cout << filename << std::endl;
-  if (FLAGS_shuffle) {
-    // randomly shuffle data
-    LOG(INFO) << "Shuffling data";
-    shuffle(lines.begin(), lines.end());
-  }
-  LOG(INFO) << "A total of " << lines.size() << " images.";
 
   if (encode_type.size() && !encoded)
     LOG(INFO) << "encode_type specified, assuming encoded=true.";
@@ -110,12 +88,20 @@ int main(int argc, char** argv) {
   std::string root_folder(argv[1]);
 
   int count = 0;
-
-  for (int line_id = 0; line_id < lines.size(); ++line_id) {
+  while (infile >> filename) {
+    std::vector<float> labels;
+    float label;
+    std::cout << filename;
+    for (int i = 0; i < labels_length; ++i){
+      infile >> label;
+    //std::cout << " " << label;
+      labels.push_back(label);
+    }
+    std::cout <<" Labels size: " << labels.size() << std::endl;
     std::string enc = encode_type;
     if (encoded && !enc.size()) {
       // Guess the encoding type from the file name
-      string fn = lines[line_id].first;
+      string fn = filename;
       size_t p = fn.rfind('.');
       if ( p == fn.npos )
         LOG(WARNING) << "Failed to guess the encoding of '" << fn << "'";
@@ -125,18 +111,17 @@ int main(int argc, char** argv) {
     MultiDatum data;
     data.clear_data();
     Datum* img_datum = data.add_data();
-    cv::Mat cv_img = ReadImageToCVMat(root_folder + lines[line_id].first, resize_height, resize_width, is_color);
+    cv::Mat cv_img = ReadImageToCVMat(root_folder + filename, resize_height, resize_width, is_color);
     if (!cv_img.data) continue;
     CHECK(cv_img.data);
     CVMatToDatum(cv_img, img_datum);
     data.clear_labels();
-    vector<float>& labels = lines[line_id].second;
     for (size_t i = 0; i < labels.size(); ++i){
         data.add_labels(labels[i]);
     }
 
     // sequential
-    string key_str = caffe::format_int(line_id, 8) + "_" + lines[line_id].first;
+    string key_str = caffe::format_int(line_id, 8) + "_" + filename;
 
     // Put in db
     string out;
